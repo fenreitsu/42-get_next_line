@@ -6,7 +6,7 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/31 12:24:59 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/31 13:49:48 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/10/31 14:09:01 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,9 +51,9 @@ char	*ft_read_until_char(int fd, char stop)
 	line = malloc(capacity);
 	if (!line)
 		return (free_and_return(line));
-	nbr_bytes = read(fd, &c, 1);
+	nbr_bytes = read(fd, &c, 1); 
 	length = 0;
-	while (nbr_bytes > 0)
+	while (nbr_bytes > 0) //tammbien se puede hacer con read(fd, &c, 1) y nos ahorramos una variable y su incremento en la iteracion
 	{
 		if (length + 1 >= capacity)
 		{
