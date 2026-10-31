@@ -6,14 +6,13 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/24 12:00:01 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/30 20:54:05 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/10/31 10:20:35 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include  <unistd.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 // --> The fcntl() function provides for control over open files. 
 // The fildes argument is a file descriptor.
 #include <fcntl.h> 
@@ -23,7 +22,7 @@ size_t	ft_strlen(char *s);
 void	ft_read_file(const char *path, int buf_size)
 {
 	int		fd;
-	ssize_t		nbr_bytes;
+	ssize_t	nbr_bytes;
 	char	*buffer;
 
 	if (path == NULL || buf_size <= 0)
@@ -38,7 +37,7 @@ void	ft_read_file(const char *path, int buf_size)
 		return ;
 	}
 	nbr_bytes = read(fd, buffer, buf_size);
-	while(nbr_bytes > 0)
+	while (nbr_bytes > 0)
 	{
 		write(1, buffer, nbr_bytes);
 		nbr_bytes = read(fd, buffer, buf_size);
@@ -47,9 +46,7 @@ void	ft_read_file(const char *path, int buf_size)
 	close(fd);
 }
 
-#include <stdlib.h>
-
-int	main(int ac, char **av)
+/* int	main(int ac, char **av)
 {
 	int	size;
 
@@ -58,4 +55,4 @@ int	main(int ac, char **av)
 	size = atoi(av[2]);
 	ft_read_file(av[1], size);
 	return (0);
-}
+} */

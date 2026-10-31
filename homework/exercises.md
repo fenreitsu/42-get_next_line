@@ -17,8 +17,97 @@
 - [Nivel 6 — Estado por fd con array (bonus-style)](#nivel-6--estado-por-fd-con-array-bonus-style)
 - [Nivel 7 — Stress y leaks](#nivel-7--stress-y-leaks)
 - [Nivel 8 — Norminette final](#nivel-8--norminette-final)
+- [Testers automáticos](#testers-automáticos)
 - [Checklist final antes de empezar GNL](#checklist-final-antes-de-empezar-gnl)
 - [Notas finales](#notas-finales)
+
+---
+
+## Testers automáticos
+
+En `tester/` hay un archivo autocontenido por función. Cada uno compila tu
+solución, ejecuta casos normales, bordes y de error, imprime `PASS`/`FAIL` y
+termina con código distinto de 0 si algo falla. No hay `Makefile` ni runner:
+compilas y ejecutas el que te interese.
+
+Compila y ejecuta **desde `homework/tester/`**. Los testers que no usan buffer:
+
+```sh
+cc -Wall -Wextra -fsanitize=address,undefined tester_ft_read_file.c -o tester_ft_read_file
+./tester_ft_read_file
+```
+
+Los que usan `BUFFER_SIZE` necesitan la flag **obligatoriamente**:
+
+```sh
+cc -Wall -Wextra -fsanitize=address,undefined \
+   -D BUFFER_SIZE=42 tester_ft_count_bytes.c -o tester_ft_count_bytes
+./tester_ft_count_bytes
+```
+
+Cada tester incluye `../<funcion>.c` y renombra su `main`, así que tu archivo
+debe llamarse igual que la función (`ft_read_file.c`, `ft_count_bytes.c`, ...).
+Si lo tienes en otro sitio, cambia la ruta del `#include`.
+
+| Ejercicio | Función | Tester | ¿Necesita `-D`? |
+|---|---|---|---|
+| 0.1 | `ft_read_file` | `tester_ft_read_file.c` | No |
+| 0.2 | `ft_count_bytes` | `tester_ft_count_bytes.c` | `BUFFER_SIZE` |
+| 1.1 | `ft_read_until_char` | `tester_ft_read_until_char.c` | No |
+| 1.2 | `ft_read_chunks` | `tester_ft_read_chunks.c` | No |
+| 2.1 | `ft_strjoin_free` | `tester_ft_strjoin_free.c` | No |
+| 2.2 | `ft_strndup` | `tester_ft_strndup.c` | No |
+| 2.3 | `ft_realloc` | `tester_ft_realloc.c` | No |
+| 3.1 | `ft_read_line_fd` | `tester_ft_read_line_fd.c` | `BUFFER_SIZE` |
+| 3.2 | `ft_read_all_fd` | `tester_ft_read_all_fd.c` | `BUFFER_SIZE` |
+| 4.1 / 5.1 | `ft_read_line_static` | `tester_ft_read_line_static.c` | `BUFFER_SIZE` |
+| 5.2 | `ft_test_gnl` (main) | `tester_ft_read_line_static.c` | `BUFFER_SIZE` |
+| 6.1 / 8.1 | `ft_gnl` + estado por fd | `tester_ft_gnl.c` | `BUFFER_SIZE` (+ `MAX_FD`) |
+| 6.2 | test multi-fd (main) | `tester_ft_gnl.c` | `BUFFER_SIZE` (+ `MAX_FD`) |
+| 7.1 | stress (main) | `tester_ft_gnl.c` | `BUFFER_SIZE` (+ `MAX_FD`) |
+
+Notas:
+
+- `-fsanitize=address,undefined` detecta fugas, dobles `free` y accesos fuera
+  de rango. Aunque el resumen diga `N/N OK`, si ASan reporta un leak el
+  programa termina con error: míralo siempre.
+- El `.h` **no define** `BUFFER_SIZE`: la única fuente es `-D`. Los testers con
+  buffer llevan `#ifndef BUFFER_SIZE` + `#error`, así que olvidar la flag es un
+  error de compilación claro, no un valor fijo escondido. Prueba al menos:
+
+  ```sh
+  -D BUFFER_SIZE=1
+  -D BUFFER_SIZE=42
+  -D BUFFER_SIZE=9999
+  -D BUFFER_SIZE=0
+  -D BUFFER_SIZE=-1
+  ```
+
+  Tu `.c` no debe redefinir la macro: el tester guarda el valor antes de
+  incluir tu archivo y falla con `_Static_assert` si cambia.
+
+- Con `BUFFER_SIZE <= 0` los testers esperan: `ft_count_bytes` devuelve `0`
+  (sin consumir el fd); `ft_read_line_fd`, `ft_read_all_fd`,
+  `ft_read_line_static` y `ft_gnl` devuelven `NULL`. Es la política que hace
+  ejecutable cualquier `-D`; si eliges otra, ajústala y documéntala.
+  Para que `-D BUFFER_SIZE=-1` compile, evita `char buf[BUFFER_SIZE]` (array
+  de tamaño negativo): reserva con `malloc` o protege la declaración con
+  `#if BUFFER_SIZE > 0`.
+
+- `tester_ft_read_all_fd.c` reduce el archivo grande cuando `BUFFER_SIZE` es
+  pequeño (32 KB con `1`, 128 KB por debajo de `4096`) para que una
+  implementación O(n²) no tarde horas; con buffers grandes prueba 1 MB.
+- `tester_ft_gnl.c` no incluye tu código: enlaza tus `.c` del nivel 6 (sin
+  `main`). `-D BUFFER_SIZE` debe aplicarse a todos los `.c` enlazados; si
+  cambias `MAX_FD`, añade también `-D MAX_FD=tu_valor`:
+
+  ```sh
+  cc -Wall -Wextra -fsanitize=address,undefined \
+     -D BUFFER_SIZE=42 -D MAX_FD=1024 \
+     tester_ft_gnl.c ../gnl.c ../gnl_state.c ../gnl_cleanup.c \
+     -o tester_ft_gnl
+  ./tester_ft_gnl
+  ```
 
 ---
 
@@ -77,8 +166,10 @@ size_t	ft_count_bytes(int fd);
 
 **Restricciones:**
 - No usar `stat`, `lseek`, ni `fstat`.
-- Buffer local de tamaño `BUFFER_SIZE` (macro).
-- Devolver `0` si `fd < 0` o si `read` devuelve `-1`.
+- Buffer local de tamaño `BUFFER_SIZE` (macro). Se pasa al compilar con
+  `-D BUFFER_SIZE=N`; el `.h` no la define.
+- Devolver `0` si `fd < 0`, si `BUFFER_SIZE <= 0` o si `read` devuelve `-1`.
+  Con `BUFFER_SIZE <= 0` no se consume el fd.
 
 > ⚠️ `size_t` no distingue "archivo vacío" (0 bytes) de "error" (también 0). Es el precio de la firma: la distinción `read == 0` vs `read == -1` se trabaja a fondo en el nivel 3. Si quieres evitarlo, propón una firma alternativa (`ssize_t` o un `int *error`) y documéntala.
 
@@ -217,8 +308,9 @@ char	*ft_read_line_fd(int fd);
 ```
 
 **Restricciones:**
-- Buffer de `BUFFER_SIZE` bytes (macro).
+- Buffer de `BUFFER_SIZE` bytes (macro, siempre con `-D BUFFER_SIZE=N`).
 - Debe funcionar con `BUFFER_SIZE = 1`.
+- Si `BUFFER_SIZE <= 0`, devuelve `NULL` sin consumir el fd.
 - **No cierres el fd**: es del llamador y lo reutilizará en la siguiente llamada. Solo libera lo que tú has reservado.
 - Sin leaks.
 
@@ -242,7 +334,8 @@ char	*ft_read_all_fd(int fd);
 
 **Restricciones:**
 - Usa `ft_strjoin_free` (nivel 2.1) o `ft_realloc` (nivel 2.3) para construir el resultado.
-- Buffer de `BUFFER_SIZE` bytes.
+- Buffer de `BUFFER_SIZE` bytes (macro, siempre con `-D BUFFER_SIZE=N`).
+- Si `BUFFER_SIZE <= 0`, devuelve `NULL`.
 - Sin leaks.
 
 **Casos borde:**
@@ -266,8 +359,9 @@ char	*ft_read_line_static(int fd);
 
 **Restricciones:**
 - `static char *resto` (una sola variable static; el estado por fd con array llega en el nivel 6).
-- Buffer de `BUFFER_SIZE` bytes.
+- Buffer de `BUFFER_SIZE` bytes (macro, siempre con `-D BUFFER_SIZE=N`).
 - Debe funcionar con `BUFFER_SIZE = 1`.
+- Si `BUFFER_SIZE <= 0`, devuelve `NULL` sin tocar `resto`.
 - Sin leaks al terminar el fd y en errores.
 - Solo soporta **un fd a la vez** (esto es intencional; el estado por fd llega en el nivel 6).
 
@@ -391,7 +485,8 @@ void	ft_gnl_cleanup_all(void);
 - Sin variables globales de archivo: el array vive como `static` local de `get_states`.
 - Sin leaks al llamar `cleanup` o `cleanup_all`.
 - Norminette: ≤5 funciones por archivo (reparte en varios `.c`).
-- Debe funcionar con `BUFFER_SIZE = 1`.
+- Debe funcionar con `BUFFER_SIZE = 1`; si `BUFFER_SIZE <= 0`, `ft_gnl`
+  devuelve `NULL` sin crear ni consumir estado.
 
 **Casos borde:**
 - `fd < 0` o `fd >= MAX_FD` → `NULL` sin crear estado.
@@ -494,6 +589,7 @@ Si marcas todo, estás listo para GNL. Si algo falla, vuelve al nivel correspond
 ## Notas finales
 
 - **Orden recomendado:** 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8. No saltes niveles.
+- **Cada nivel tiene su tester automático** en `tester/` (ver [Testers automáticos](#testers-automáticos)); úsalo antes de avanzar.
 - **Cada nivel debe pasar valgrind y ASan (en builds separados) antes de avanzar.**
 - **Documenta tus decisiones** (política de liberación en `strjoin_free`, comportamiento con `BUFFER_SIZE <= 0`, etc.). GNL te exigirá criterio.
 - **El fallo del nivel 5.2 es intencional:** te enseña por qué el bonus existe.
