@@ -6,7 +6,7 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/31 12:24:59 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/31 14:09:01 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/10/31 16:44:09 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ static void	*ft_memcpy(void *dest, const void *src, size_t n)
 	i = 0;
 	ptrd = (unsigned char *)dest;
 	ptrs = (unsigned char *)src;
+	if (dest == NULL && src == NULL)
+		return (NULL);
 	while(i < n)
 	{
 		ptrd[i] = ptrs[i];
