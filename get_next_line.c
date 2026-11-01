@@ -6,7 +6,7 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/01 14:53:35 by reiascan          #+#    #+#             */
-/*   Updated: 2026/11/01 18:13:03 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/11/01 18:39:15 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ static char	*read_until_nl(int fd, char *content, char *buffer)
 			free(content);
 			return (NULL);
 		}
-		if (nbr_bytes == 0)
-			break ;
 		buffer[nbr_bytes] = '\0';
 		content = ft_strjoin_free(content, buffer);
 		if (content == NULL)
