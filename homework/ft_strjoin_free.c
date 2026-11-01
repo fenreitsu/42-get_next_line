@@ -6,57 +6,82 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/31 16:24:35 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/31 17:11:58 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/11/01 14:50:36 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../get_next_line.h"
 
-static  size_t	ft_str_len(char *s)
+static size_t	ft_strlen(char *s)
 {
 	size_t	i;
 
 	i = 0;
-	while(s[i])
+	while (s[i])
 	{
 		i++;
 	}
 	return (i);
 }
 
-static char	*ft_copy(char *dest, char const *src)
+static	char	*ft_strdup(const char *s)
 {
-	size_t			i;
+	size_t	i;
+	size_t	len;
+	char	*dup;
 
-	i = 0;
-	if (src == NULL)
+	len = ft_strlen((char *)s);
+	dup = malloc (len + 1);
+	if (dup == NULL)
 		return (NULL);
-	while(src[i])
+	i = 0;
+	while (s[i])
 	{
-		dest[i] = src[i];
+		dup[i] = s[i];
 		i++;
 	}
-	return(&dest[i]);
+	dup[i] = '\0';
+	return (dup);
+}
+
+char	*ft_strjoin_for_real(char *s1, char *s2)
+{
+	size_t	i;
+	size_t	j;
+	char	*real_str;
+
+	real_str = malloc(ft_strlen(s1) + ft_strlen (s2) + 1);
+	if (!real_str)
+		return (NULL);
+	i = -1;
+	while (s1[++i])
+	{
+		real_str[i] = s1[i];
+	}
+	j = -1;
+	while (s2[++j])
+	{
+		real_str[i] = s2[j];
+		i++;
+	}
+	real_str[i] = '\0';
+	return (real_str);
 }
 
 char	*ft_strjoin_free(char *s1, const char *s2)
 {
-	size_t	total_len;
 	char	*new_str;
-	char	*next_ptr;
 
 	if (s1 == NULL && s2 == NULL)
 		return (NULL);
-	total_len = (ft_str_len(s1) + ft_str_len((char *)s2));
-	new_str = malloc(total_len + 1);
-	if  (!new_str)
+	if (s1 == NULL)
 	{
-		free(new_str);
-		return (NULL);
+		new_str = ft_strdup(s2);
+		return (new_str);
 	}
-	next_ptr = ft_copy(new_str, s1);
-	ft_copy(next_ptr, s2);
-	new_str[total_len] = '\0';
+	if (s2 == NULL)
+		return (s1);
+	new_str = ft_strjoin_for_real(s1, (char *)s2);
 	free(s1);
 	return (new_str);
 }

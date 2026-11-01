@@ -6,7 +6,7 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/31 13:44:36 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/31 16:16:57 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/11/01 17:11:02 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ int main(void)
 	char 	*line;	
 	
 	fd = open("../tester/tmp/normal.txt", O_RDONLY, 0644);
-	line = ft_read_until_char(fd, ',');
+	line = ft_read_until_char(fd, 'g');
 	close (fd);
 	if (!line)
 		return (1);

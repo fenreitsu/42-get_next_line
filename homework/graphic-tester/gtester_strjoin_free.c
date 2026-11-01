@@ -6,10 +6,10 @@
 /*   By: reiascan <reiascan@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/31 16:23:02 by reiascan          #+#    #+#             */
-/*   Updated: 2026/10/31 16:24:33 by reiascan         ###   ########.fr       */
+/*   Updated: 2026/11/01 14:16:17 by reiascan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../get_next_lline.h"
+#include "../../get_next_line.h"
 #include "../ft_strjoin_free.c"
 
